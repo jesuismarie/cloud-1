@@ -13,6 +13,28 @@ services:
     volumes:
       - wordpress-volume:/var/www/html/
 
+  mysql:
+    container_name: mysql
+    image: mysql:8.4
+    env_file: .env
+    restart: unless-stopped
+    environment:
+      - MYSQL_PASSWORD_FILE=/run/secrets/db_pass
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_root_pass
+    networks:
+      - inception
+    volumes:
+      - mysql-volume:/var/lib/mysql
+    secrets:
+      - db_pass
+      - db_root_pass
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --user=root --password=$$(cat /run/secrets/db_root_pass) --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
+
 volumes:
   wordpress-volume:
     driver: local
@@ -20,7 +42,19 @@ volumes:
       device: /home/${USER}/data/wordpress
       o: bind
       type: none
+  mysql-volume:
+    driver: local
+    driver_opts:
+      device: /home/${USER}/data/mysql
+      o: bind
+      type: none
 
 networks:
   inception:
     driver: bridge
+
+secrets:
+  db_pass:
+    file: ./secrets/db_pass.txt
+  db_root_pass:
+    file: ./secrets/db_root_pass.txt
