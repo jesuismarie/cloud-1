@@ -1,6 +1,6 @@
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
-ENV PHP_VERSION 7.4
+ENV PHP_VERSION 8.2
 
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
@@ -30,4 +30,4 @@ EXPOSE 9000
 
 ENTRYPOINT ["/run_wordpress.sh"]
 
-CMD ["php-fpm7.4", "-F"]
+CMD ["php-fpm8.2", "-F"]
