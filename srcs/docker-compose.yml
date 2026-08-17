@@ -9,7 +9,7 @@ services:
     ports:
       - "443:443"
     networks:
-      - inception
+      - cloud-1
     volumes:
       - wordpress-volume:/var/www/html/
     depends_on:
@@ -27,7 +27,7 @@ services:
       - MYSQL_PASSWORD_FILE=/run/secrets/db_pass
       - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_root_pass
     networks:
-      - inception
+      - cloud-1
     volumes:
       - mysql-volume:/var/lib/mysql
     secrets:
@@ -47,7 +47,7 @@ services:
     env_file: .env
     restart: unless-stopped
     networks:
-      - inception
+      - cloud-1
     volumes:
       - wordpress-volume:/var/www/html/
     secrets:
@@ -65,14 +65,14 @@ services:
       start_period: 60s
 
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
+    image: phpmyadmin/phpmyadmin:5.2
     container_name: phpmyadmin
     env_file: .env
     restart: unless-stopped
     ports:
       - "80:80"
     networks:
-      - inception
+      - cloud-1
     depends_on:
       mysql:
         condition: service_healthy
@@ -92,7 +92,7 @@ volumes:
       type: none
 
 networks:
-  inception:
+  cloud-1:
     driver: bridge
 
 secrets:
