@@ -17,9 +17,9 @@ RUN apt-get update \
 RUN mkdir -p /run/php \
 	&& chown -R www-data:www-data /run/php
 
-RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
-	&& chmod +x wp-cli.phar \
-	&& mv wp-cli.phar /usr/local/bin/wp
+RUN curl -fSL -o /usr/local/bin/wp \
+	https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+	&& chmod +x /usr/local/bin/wp
 
 WORKDIR /var/www/html
 COPY tools/run_wordpress.sh /run_wordpress.sh

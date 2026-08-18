@@ -11,7 +11,6 @@ for secret in db_pass wp_root_pass wp_user_pass; do
 	fi
 done
 
-
 PHP_FPM_CONF="/etc/php/${PHP_VERSION}/fpm/pool.d/www.conf"
 if [ -f "$PHP_FPM_CONF" ]; then
 	sed -i "s|^listen = .*|listen = 0.0.0.0:9000|" "$PHP_FPM_CONF"
