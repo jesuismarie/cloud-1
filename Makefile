@@ -4,6 +4,31 @@ RESET			:= \033[0m
 DATA_PATH		:= /home/$(USER)/data
 WORDPRESS_PATH	:= $(DATA_PATH)/wordpress
 MYSQL_PATH		:= $(DATA_PATH)/mysql
+TF_DIR			:= infra/provision
+
+init:
+	terraform -chdir=$(TF_DIR) init
+
+plan:
+	terraform -chdir=$(TF_DIR) plan
+
+apply:
+	terraform -chdir=$(TF_DIR) apply
+
+destroy:
+	terraform -chdir=$(TF_DIR) destroy
+
+show:
+	terraform -chdir=$(TF_DIR) show
+
+format:
+	terraform -chdir=$(TF_DIR) fmt
+
+validate:
+	terraform -chdir=$(TF_DIR) validate
+
+graph:
+	terraform -chdir=$(TF_DIR) graph | dot -Tsvg > graph.svg
 
 local: create_dirs up
 
@@ -28,4 +53,5 @@ clean-local:
 
 re: fclean local
 
-.PHONY: local re up down create_dirs clean-local
+.PHONY: local re up down create_dirs clean-local \
+		init plan apply destroy show format validate graph
