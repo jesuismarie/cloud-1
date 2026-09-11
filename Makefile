@@ -1,48 +1,57 @@
-LIGHT_PURPLE	:= \033[1;35m
-RESET			:= \033[0m
+LIGHT_PURPLE		:= \033[1;35m
+RESET				:= \033[0m
 
-USERNAME		:= $(shell grep '^USERNAME=' srcs/.env | cut -d= -f2)
-DATA_PATH		:= /home/$(USER)/data
-WORDPRESS_PATH	:= $(DATA_PATH)/wordpress
-MYSQL_PATH		:= $(DATA_PATH)/mysql
-TF_DIR			:= infra/provision
-SSH_KEY_PATH	:= /home/$(USER)/.ssh/cloud1_key
-
-all: ssh-key init plan apply
-
-ssh-key:
-	@if [ ! -f $(SSH_KEY_PATH) ]; then \
-		echo "${LIGHT_PURPLE}Generating SSH key pair...${RESET}"; \
-		ssh-keygen -t ed25519 -f $(SSH_KEY_PATH) -C "cloud-1-deploy" -N ""; \
-	else \
-		echo "${LIGHT_PURPLE}SSH key already exists, skipping.${RESET}"; \
-	fi
+USERNAME			:= $(shell grep '^USERNAME=' srcs/.env | cut -d= -f2)
+DATA_PATH			:= /home/$(USER)/data
+WORDPRESS_PATH		:= $(DATA_PATH)/wordpress
+MYSQL_PATH			:= $(DATA_PATH)/mysql
+TF_DIR				:= ./infra/provision
+all:
+	@echo "${LIGHT_PURPLE}Deploying full Cloud-1 infrastructure...${RESET}"
+	@$(MAKE) init plan apply
+	@echo "${LIGHT_PURPLE}Infrastructure provisioned. Run 'make show' for the instance IP.${RESET}"
 
 init:
-	terraform -chdir=$(TF_DIR) init
+	@echo "${LIGHT_PURPLE}Initializing Terraform...${RESET}"
+	@terraform -chdir=$(TF_DIR) init
 
-plan: ssh-key
-	terraform -chdir=$(TF_DIR) plan
+plan: init
+	@echo "${LIGHT_PURPLE}Planning infrastructure changes...${RESET}"
+	@terraform -chdir=$(TF_DIR) plan
 
-apply: ssh-key
-	terraform -chdir=$(TF_DIR) apply
+apply: init
+	@echo "${LIGHT_PURPLE}Applying infrastructure changes...${RESET}"
+	@terraform -chdir=$(TF_DIR) apply
+	@echo "${LIGHT_PURPLE}Instance is up.${RESET}"
 
 destroy:
-	terraform -chdir=$(TF_DIR) destroy
+	@echo "${LIGHT_PURPLE}Destroying cloud infrastructure...${RESET}"
+	@terraform -chdir=$(TF_DIR) destroy
+	@echo "${LIGHT_PURPLE}Infrastructure destroyed.${RESET}"
 
-redeploy: destroy ssh-key all
+remove: destroy
+	@echo "${LIGHT_PURPLE}Removing local Terraform state and lock file...${RESET}"
+	@rm -rf $(TF_DIR)/.terraform/ $(TF_DIR)/.terraform.lock.hcl $(TF_DIR)/.states
+	@echo "${LIGHT_PURPLE}Terraform workspace cleaned.${RESET}"
+
+redeploy: destroy all
+	@echo "${LIGHT_PURPLE}Redeployment complete.${RESET}"
 
 show:
-	terraform -chdir=$(TF_DIR) show
+	@echo "${LIGHT_PURPLE}Current Terraform state:${RESET}"
+	@terraform -chdir=$(TF_DIR) show
 
 format:
-	terraform -chdir=$(TF_DIR) fmt
+	@echo "${LIGHT_PURPLE}Formatting Terraform files...${RESET}"
+	@terraform -chdir=$(TF_DIR) fmt
 
-validate:
-	terraform -chdir=$(TF_DIR) validate
+validate: init
+	@echo "${LIGHT_PURPLE}Validating Terraform configuration...${RESET}"
+	@terraform -chdir=$(TF_DIR) validate
 
 graph:
-	terraform -chdir=$(TF_DIR) graph | dot -Tsvg > graph.svg
+	@echo "${LIGHT_PURPLE}Generating dependency graph (graph.svg)...${RESET}"
+	@terraform -chdir=$(TF_DIR) graph | dot -Tsvg > graph.svg
 
 local: create_dirs up
 
@@ -73,4 +82,4 @@ clean-local: down
 re: clean-local local
 
 .PHONY: local check-env re up down create_dirs clean-local \
-		all ssh-key init plan apply destroy redeploy show format validate graph
+		all init plan apply destroy remove redeploy show format validate graph
