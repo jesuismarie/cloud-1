@@ -7,6 +7,10 @@ terraform {
       version = "~> 6.4"
     }
   }
+
+  backend "local" {
+    path = "./.states/terraform.tfstate"
+  }
 }
 
 provider "aws" {
