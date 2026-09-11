@@ -6,6 +6,7 @@ secrets
 *.pem
 *.crt
 .terraform/
+.states/
 *.tfstate
 *.tfstate.*
 *.tfplan
@@ -16,4 +17,3 @@ crash.*.log
 *.tfvars.json
 *.svg
 *.csv
-.terraform.lock.hcl
