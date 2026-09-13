@@ -6,20 +6,44 @@ DATA_PATH			:= /home/$(USER)/data
 WORDPRESS_PATH		:= $(DATA_PATH)/wordpress
 MYSQL_PATH			:= $(DATA_PATH)/mysql
 TF_DIR				:= ./infra/provision
+SSH_KEY_PATH		:= /home/$(USER)/.ssh/cloud1_key
+DEFAULT_KEY_NAME	:= cloud1_key
+
 all:
 	@echo "${LIGHT_PURPLE}Deploying full Cloud-1 infrastructure...${RESET}"
-	@$(MAKE) init plan apply
+	@$(MAKE) ssh-key init plan apply
 	@echo "${LIGHT_PURPLE}Infrastructure provisioned. Run 'make show' for the instance IP.${RESET}"
+
+ssh-key:
+	@key_path=$$(eval echo $(SSH_KEY_PATH)); \
+	if [ ! -f $$key_path ]; then \
+		if [ -t 0 ]; then \
+			read -p "SSH key not found. Path to save it [$$key_path]: " input_path; \
+			input_path=$${input_path:-$$key_path}; \
+			key_path=$$(eval echo $$input_path); \
+		fi; \
+		case "$$key_path" in \
+			*/) key_path="$${key_path}$(DEFAULT_KEY_NAME)" ;; \
+		esac; \
+		if [ -d "$$key_path" ]; then \
+			key_path="$${key_path%/}/$(DEFAULT_KEY_NAME)"; \
+		fi; \
+		mkdir -p $$(dirname $$key_path); \
+		echo "${LIGHT_PURPLE}Generating SSH key pair at $$key_path...${RESET}"; \
+		ssh-keygen -t ed25519 -f $$key_path -C "cloud-1-deploy" -N ""; \
+	else \
+		echo "${LIGHT_PURPLE}SSH key already exists, skipping.${RESET}"; \
+	fi
 
 init:
 	@echo "${LIGHT_PURPLE}Initializing Terraform...${RESET}"
 	@terraform -chdir=$(TF_DIR) init
 
-plan: init
+plan: init ssh-key
 	@echo "${LIGHT_PURPLE}Planning infrastructure changes...${RESET}"
 	@terraform -chdir=$(TF_DIR) plan
 
-apply: init
+apply: init ssh-key
 	@echo "${LIGHT_PURPLE}Applying infrastructure changes...${RESET}"
 	@terraform -chdir=$(TF_DIR) apply
 	@echo "${LIGHT_PURPLE}Instance is up.${RESET}"
@@ -34,7 +58,7 @@ remove: destroy
 	@rm -rf $(TF_DIR)/.terraform/ $(TF_DIR)/.terraform.lock.hcl $(TF_DIR)/.states
 	@echo "${LIGHT_PURPLE}Terraform workspace cleaned.${RESET}"
 
-redeploy: destroy all
+redeploy: destroy ssh-key all
 	@echo "${LIGHT_PURPLE}Redeployment complete.${RESET}"
 
 show:
@@ -82,4 +106,4 @@ clean-local: down
 re: clean-local local
 
 .PHONY: local check-env re up down create_dirs clean-local \
-		all init plan apply destroy remove redeploy show format validate graph
+		all ssh-key init plan apply destroy remove redeploy show format validate graph
