@@ -12,8 +12,14 @@ variable "aws_instance_type" {
   description = "AWS EC2 instance type"
   type        = string
   default     = "t3.micro"
+
+  validation {
+    condition     = contains(["t2.micro", "t3.micro"], var.aws_instance_type)
+    error_message = "Instance type must be a free-tier eligible type (t2.micro or t3.micro)."
+  }
 }
 
+# AWS EC2 Image ID for Ubuntu 22.04 LTS
 data "aws_ami" "ubuntu_2204" {
   most_recent = true
   owners      = ["099720109477"]
@@ -43,5 +49,4 @@ data "aws_ami" "ubuntu_2204" {
 variable "ssh_public_key_path" {
   description = "Path to the local SSH public key to install on the instance"
   type        = string
-  default     = "~/.ssh/cloud1_key.pub"
 }

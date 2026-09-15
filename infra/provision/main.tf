@@ -17,7 +17,7 @@ resource "aws_instance" "cloud-1" {
 # Define AWS EC2 Instance Key Pair
 resource "aws_key_pair" "cloud1" {
   key_name   = "cloud1-key"
-  public_key = file(var.ssh_public_key_path)
+  public_key = file(pathexpand(var.ssh_public_key_path))
 }
 
 # Define The Security Group for the EC2 Instance
