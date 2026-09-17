@@ -19,6 +19,13 @@ variable "aws_instance_type" {
   }
 }
 
+# AWS EC2 Instance Count
+variable "instance_count" {
+  description = "Number of EC2 instances to provision in parallel"
+  type        = number
+  default     = 1
+}
+
 # AWS EC2 Image ID for Ubuntu 22.04 LTS
 data "aws_ami" "ubuntu_2204" {
   most_recent = true

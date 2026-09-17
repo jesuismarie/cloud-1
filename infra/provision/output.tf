@@ -1,26 +1,26 @@
 # This file contains the output values for the Terraform configuration.
 
-# Instance ID of EC2 instance
+# Instance IDs of all EC2 instances
 output "instance_id" {
-  description = "EC2 instance ID"
-  value       = aws_instance.cloud-1.id
+  description = "The IDs of the EC2 instances"
+  value       = aws_instance.cloud-1[*].id
 }
 
-# Private IP address of EC2 instance
+# Private IP addresses of all EC2 instances
 output "private_ip" {
-  description = "EC2 instance private IP address"
-  value       = aws_instance.cloud-1.private_ip
+  description = "The private IP addresses of the EC2 instances"
+  value       = aws_instance.cloud-1[*].private_ip
 }
 
-# Public IP address of EC2 instance
+# Public IP addresses of all EC2 instances
 output "public_ip" {
-  description = "EC2 instance public IP address"
-  value       = aws_instance.cloud-1.public_ip
+  description = "The public IP addresses of the EC2 instances"
+  value       = aws_instance.cloud-1[*].public_ip
 }
 
-# SSH command to connect to the EC2 instance
+# SSH commands to connect to each EC2 instance
 output "ssh_command" {
-  description = "The SSH command to connect to the EC2 instance"
-  value       = "ssh -i ${trimsuffix(var.ssh_public_key_path, ".pub")} ubuntu@${aws_instance.cloud-1.public_ip}"
+  description = "The SSH commands to connect to each EC2 instance"
+  value       = [for ip in aws_instance.cloud-1[*].public_ip : "ssh -i ${trimsuffix(var.ssh_public_key_path, ".pub")} ubuntu@${ip}"]
   sensitive   = true
 }
