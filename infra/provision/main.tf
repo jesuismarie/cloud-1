@@ -2,13 +2,14 @@
 
 # Define the AWS EC2 Instance
 resource "aws_instance" "cloud-1" {
+  count         = var.instance_count
   ami           = data.aws_ami.ubuntu_2204.id
   instance_type = var.aws_instance_type
   key_name      = aws_key_pair.cloud1.key_name
 
   tags = {
-    Name        = "cloud-1"
-    Description = "cloud-1 EC2 instance provisioned by Terraform"
+    Name        = "cloud1-${count.index}"
+    Description = "cloud1 EC2 instance provisioned by Terraform"
   }
 
   vpc_security_group_ids = [aws_security_group.cloud1_sg.id]
@@ -56,4 +57,14 @@ resource "aws_security_group" "cloud1_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+# Define the Ansible Inventory File
+resource "local_file" "ansible_inventory" {
+  filename = "${path.module}/../configuration/inventory/hosts.ini"
+
+  content = templatefile("${path.module}/templates/hosts.ini.tpl", {
+    public_ips           = aws_instance.cloud-1[*].public_ip
+    ssh_private_key_path = trimsuffix(var.ssh_public_key_path, ".pub")
+  })
 }
