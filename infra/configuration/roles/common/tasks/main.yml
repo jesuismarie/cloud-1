@@ -1,16 +1,14 @@
 - name: Update apt
-  apt:
+  ansible.builtin.apt:
     update_cache: yes
 
 - name: Install required packages
-  apt:
-    name:
-      - vim
-      - python3
+  ansible.builtin.apt:
+    name: "{{ common_packages }}"
     state: present
 
 - name: Harden SSH configuration
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"

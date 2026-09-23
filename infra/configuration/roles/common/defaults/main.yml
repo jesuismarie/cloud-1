@@ -1,5 +1,8 @@
 common_packages:
   - vim
+  - ca-certificates
+  - curl
+  - gnupg
   - python3
 
 ssh_permit_root_login: "no"
