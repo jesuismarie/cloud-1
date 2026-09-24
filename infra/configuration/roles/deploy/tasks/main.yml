@@ -1,0 +1,47 @@
+- name: Create application directory
+  ansible.builtin.file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: "{{ docker_user }}"
+    mode: "0755"
+
+- name: Create data directories for bind mounts
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: "{{ docker_user }}"
+    mode: "0755"
+  loop:
+    - "{{ data_dir }}/wordpress"
+    - "{{ data_dir }}/mysql"
+
+- name: Copy project files to the server
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../../srcs/"
+    dest: "{{ app_dir }}/"
+    owner: "{{ docker_user }}"
+    group: "{{ docker_user }}"
+    mode: "0755"
+
+- name: Set correct permissions on secrets
+  ansible.builtin.file:
+    path: "{{ app_dir }}/secrets"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: "{{ docker_user }}"
+    mode: "0700"
+    recurse: true
+
+- name: Deploy stack with Docker Compose
+  ansible.builtin.command:
+    cmd: docker-compose -f {{ compose_file }} up -d --build
+    chdir: "{{ app_dir }}"
+  become_user: "{{ docker_user }}"
+  register: compose_output
+  changed_when: >
+    'Creating' in compose_output.stdout or
+    'Recreating' in compose_output.stdout or
+    'Started' in compose_output.stdout or
+    'Building' in compose_output.stdout
