@@ -15,9 +15,6 @@ services:
     depends_on:
       wordpress:
         condition: service_healthy
-      phpmyadmin:
-        condition: service_started
-
   mysql:
     container_name: mysql
     image: mysql:8.4
@@ -81,13 +78,14 @@ volumes:
   wordpress-volume:
     driver: local
     driver_opts:
-      device: /home/${USER}/data/wordpress
+      device: /opt/data/wordpress
       o: bind
       type: none
+
   mysql-volume:
     driver: local
     driver_opts:
-      device: /home/${USER}/data/mysql
+      device: /opt/data/mysql
       o: bind
       type: none
 
