@@ -1,0 +1,24 @@
+- name: Deploy Cloud-1 infrastructure
+  hosts: all
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Wait for SSH to become available
+      ansible.builtin.wait_for_connection:
+        delay: 10
+        timeout: 400
+
+  vars_files:
+    - ../group_vars/all.yml
+
+  roles:
+    - role: common
+    - role: firewall
+    - role: docker
+    - role: deploy
+
+  post_tasks:
+    - name: Show success message
+      ansible.builtin.debug:
+        msg: "Deployment completed successfully on {{ inventory_hostname }}"
