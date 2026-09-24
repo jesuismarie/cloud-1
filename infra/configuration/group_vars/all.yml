@@ -1,0 +1,5 @@
+app_dir: "/opt/inception"
+
+data_dir: "{{ app_dir }}/../data"
+
+docker_user: "{{ ansible_user }}"
