@@ -10,6 +10,7 @@ output "instance_id" {
 output "private_ip" {
   description = "The private IP addresses of the EC2 instances"
   value       = aws_instance.cloud-1[*].private_ip
+  sensitive   = true
 }
 
 # Public IP addresses of all EC2 instances
