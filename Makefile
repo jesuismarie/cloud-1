@@ -2,16 +2,18 @@ LIGHT_PURPLE		:= \033[1;35m
 RESET				:= \033[0m
 
 USERNAME			:= $(shell grep '^USERNAME=' srcs/.env | cut -d= -f2)
-DATA_PATH			:= /home/$(USER)/data
+DATA_PATH			:= /opt/data
 WORDPRESS_PATH		:= $(DATA_PATH)/wordpress
 MYSQL_PATH			:= $(DATA_PATH)/mysql
 TF_DIR				:= ./infra/provision
+ANSIBLE_DIR			:= ./infra/configuration
+ANSIBLE_CONFIG		:= $(ANSIBLE_DIR)/ansible.cfg
 SSH_KEY_PATH		:= /home/$(USER)/.ssh/cloud1_key
 DEFAULT_KEY_NAME	:= cloud1_key
 
 all:
 	@echo "${LIGHT_PURPLE}Deploying full Cloud-1 infrastructure...${RESET}"
-	@$(MAKE) ssh-key init plan apply
+	@$(MAKE) ssh-key init apply deploy
 	@echo "${LIGHT_PURPLE}Infrastructure provisioned. Run 'make show' for the instance IP.${RESET}"
 
 ssh-key:
@@ -48,6 +50,11 @@ apply: init ssh-key
 	@terraform -chdir=$(TF_DIR) apply
 	@echo "${LIGHT_PURPLE}Instance is up.${RESET}"
 
+deploy:
+	@echo "${LIGHT_PURPLE}Running Ansible playbook...${RESET}"
+	@cd $(ANSIBLE_DIR) && ansible-playbook playbooks/main.yml
+	@echo "${LIGHT_PURPLE}Ansible playbook executed.${RESET}"
+
 destroy:
 	@echo "${LIGHT_PURPLE}Destroying cloud infrastructure...${RESET}"
 	@terraform -chdir=$(TF_DIR) destroy
@@ -58,7 +65,7 @@ remove: destroy
 	@rm -rf $(TF_DIR)/.terraform/ $(TF_DIR)/.terraform.lock.hcl $(TF_DIR)/.states
 	@echo "${LIGHT_PURPLE}Terraform workspace cleaned.${RESET}"
 
-redeploy: destroy ssh-key all
+redeploy: remove ssh-key all
 	@echo "${LIGHT_PURPLE}Redeployment complete.${RESET}"
 
 show:
@@ -106,4 +113,4 @@ clean-local: down
 re: clean-local local
 
 .PHONY: local check-env re up down create_dirs clean-local \
-		all ssh-key init plan apply destroy remove redeploy show format validate graph
+		all ssh-key init plan apply deploy destroy remove redeploy show format validate graph
