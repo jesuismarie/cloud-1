@@ -7,6 +7,7 @@ services:
     env_file: .env
     restart: unless-stopped
     ports:
+      - "80:80"
       - "443:443"
     networks:
       - cloud-1
@@ -15,6 +16,9 @@ services:
     depends_on:
       wordpress:
         condition: service_healthy
+      phpmyadmin:
+        condition: service_started
+
   mysql:
     container_name: mysql
     image: mysql:8.4
@@ -66,8 +70,6 @@ services:
     container_name: phpmyadmin
     env_file: .env
     restart: unless-stopped
-    ports:
-      - "80:80"
     networks:
       - cloud-1
     depends_on:
