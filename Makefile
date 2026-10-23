@@ -50,11 +50,6 @@ apply: init ssh-key
 	@terraform -chdir=$(TF_DIR) apply
 	@echo "${LIGHT_PURPLE}Instance is up.${RESET}"
 
-deploy:
-	@echo "${LIGHT_PURPLE}Running Ansible playbook...${RESET}"
-	@cd $(ANSIBLE_DIR) && ansible-playbook playbooks/main.yml
-	@echo "${LIGHT_PURPLE}Ansible playbook executed.${RESET}"
-
 destroy:
 	@echo "${LIGHT_PURPLE}Destroying cloud infrastructure...${RESET}"
 	@terraform -chdir=$(TF_DIR) destroy
@@ -83,6 +78,11 @@ validate: init
 graph:
 	@echo "${LIGHT_PURPLE}Generating dependency graph (graph.svg)...${RESET}"
 	@terraform -chdir=$(TF_DIR) graph | dot -Tsvg > graph.svg
+
+deploy:
+	@echo "${LIGHT_PURPLE}Running Ansible playbook...${RESET}"
+	@cd $(ANSIBLE_DIR) && ansible-playbook playbooks/main.yml
+	@echo "${LIGHT_PURPLE}Ansible playbook executed.${RESET}"
 
 local: create_dirs up
 
