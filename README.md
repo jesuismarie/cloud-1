@@ -32,7 +32,7 @@ Terraform's record of what it's already created and what those resources' real a
 
 ### Terraform Variables
 
-Inputs declared in `variables.tf` (region, instance type, SSH key path) and supplied via `terraform.tfvars` at apply time, rather than hardcoded — the same reasoning as `.env` for the application layer: one file holds the machine-specific values, kept out of version control, with a committed `.example` template showing the expected shape.
+Inputs declared in `variables.tf` (region, instance type, SSH key path) and supplied via `terraform.tfvars` at apply time, rather than hardcoded — the same reasoning as `.env` for the application layer: one file holds the machine-specific values, separate from the code that consumes them.
 
 ### Ansible Role
 
@@ -110,8 +110,16 @@ cloud-1/
 
 	```bash
 	sudo apt update
-	sudo apt install build-essential
-	sudo apt install ansible terraform
+	sudo apt install -y build-essential ansible gnupg software-properties-common curl
+	```
+
+	Terraform is not in Ubuntu's default repositories, so add HashiCorp's apt repository first:
+
+	```bash
+	wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+	echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+	sudo apt update
+	sudo apt install -y terraform
 	```
 
 2. Clone the repository:
@@ -173,10 +181,10 @@ cloud-1/
 	- Terraform authenticates as whichever AWS identity is configured locally — it never stores or requests credentials itself. If you don't have the AWS CLI yet:
 
 		```bash
-		curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-		unzip awscliv2.zip
-		sudo ./aws/install
+		sudo apt install -y awscli
 		```
+
+		The `awscli` package from Ubuntu's repositories is AWS CLI v1, which is all this project needs (`aws configure` and `aws sts get-caller-identity`).
 
 	- In the AWS Console, create an IAM user for this project (avoid using root or an admin-access user) and scope it to EC2 only — the `AmazonEC2FullAccess` managed policy covers everything this project needs. Under that user's **Security credentials** tab, create an access key for **Command Line Interface (CLI)** use.
 	- Configure the CLI with that key:
