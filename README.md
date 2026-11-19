@@ -159,9 +159,6 @@ cloud-1/
 
 		WORDPRESS_USER_USERNAME=xxxx
 		WORDPRESS_USER_EMAIL=xxxx
-
-		PMA_HOST=mysql
-		PMA_ABSOLUTE_URI=https://xxxx.xx.xx/phpmyadmin/
 		```
 
 4. Create the secrets directory and populate it:
